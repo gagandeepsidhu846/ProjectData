@@ -63,7 +63,7 @@ public class UserController {
     public ResponseEntity<UserEntity>deleteByName(@PathVariable String userName){
         UserEntity deleteByName = userService.deleteByName(userName);
         ResponseEntity<UserEntity> deleteResponse = ResponseEntity.status(HttpStatus.OK)
-                .header("userName", "user123")
+                 .header("userName", "user123")
                 .header("password", "pass124")
                 .body(deleteByName);
         return deleteResponse;
