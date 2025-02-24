@@ -1,98 +1,66 @@
 package com.example.demo.API;
 
-import com.example.demo.Entity.UserEntity;
-import com.example.demo.Repo.UserRepo;
+import com.example.demo.DTO.UserDTO;
 import com.example.demo.Service.UserService;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
 public class UserController {
+
     @Autowired
     private UserService userService;
-    @Autowired
-    private UserRepo userRepo;
-
+//save the user
     @PostMapping("/saveUser")
-    public ResponseEntity<UserEntity>saveUser(@RequestBody UserEntity userEntity){
-        UserEntity saveUser = userService.saveUser(userEntity);
-        ResponseEntity<UserEntity> response = ResponseEntity.status(HttpStatus.CREATED)
-                .header("userName", "pragra123")
-                .header("password", "pragra1234")
-                .body(saveUser);
-        return response;
+    public ResponseEntity<UserDTO> saveUser(@RequestBody UserDTO userDTO) {
+        UserDTO savedUserDTO = userService.saveUser(userDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUserDTO);
     }
+//Get the user byId
     @GetMapping("/getUser/{id}")
-    public ResponseEntity<Optional<UserEntity>> getUser(@PathVariable int id, HttpServletResponse httpServletResponse){
-        Optional<UserEntity> getUser = userService.getUser(id);
-        ResponseEntity<Optional<UserEntity>> responseUser = ResponseEntity.status(HttpStatus.OK)
-                .header("userName", "userOk")
-                .header("password", "pass123")
-                .body(getUser);
-    return responseUser;
+    public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
+        return userService.getUser(id)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + id));
     }
-    @GetMapping("/getUserName/{name}")
-    public ResponseEntity<Optional<UserEntity>>getUserBYName(@PathVariable String name){
-        Optional<UserEntity> userByName = userService.getUserByName(name);
-        ResponseEntity<Optional<UserEntity>> response = ResponseEntity.status(HttpStatus.OK)
-                .header("userName", "userOk")
-                .header("password", "pass123")
-                .body(userByName);
-        return response;
+//Get the user by using UserName
+    @GetMapping("/getUserByName/{name}")
+    public ResponseEntity<UserDTO> getUserByName(@PathVariable String name) {
+        return userService.getUserByName(name)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new NoSuchElementException("User not found with name: " + name));
     }
-    //Delete ById
-
+//Delete data using UserId
     @DeleteMapping("/deleteUserById/{id}")
-    public ResponseEntity<UserEntity>deleteById(@PathVariable int id){
-        UserEntity deleteByID = userService.deleteByID(id);
-        ResponseEntity<UserEntity> deleteResponse = ResponseEntity.status(HttpStatus.resolve(200))
-                .header("userName", "user123")
-                .header("password", "pass1234")
-                .body(deleteByID);
-        return deleteResponse;
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+        userService.deleteByID(id);
+        return ResponseEntity.noContent().build();
     }
+//DeleteUser byName
     @DeleteMapping("/deleteUserByName/{userName}")
-    public ResponseEntity<UserEntity>deleteByName(@PathVariable String userName){
-        UserEntity deleteByName = userService.deleteByName(userName);
-        ResponseEntity<UserEntity> deleteResponse = ResponseEntity.status(HttpStatus.OK)
-                 .header("userName", "user123")
-                .header("password", "pass124")
-                .body(deleteByName);
-        return deleteResponse;
+    public ResponseEntity<Void> deleteByName(@PathVariable String userName) {
+        userService.deleteByName(userName);
+        return ResponseEntity.noContent().build();
     }
-    //Update Existing userData By Id
-    @PutMapping("/userUpdateById/{Id}")
-    public ResponseEntity<UserEntity>updateById(@PathVariable int Id,@RequestBody UserEntity userEntity){
-        UserEntity updateBYId = userService.updateBYId(Id, userEntity);
-        ResponseEntity<UserEntity> response = ResponseEntity.status(HttpStatus.CREATED)
-                .header(HttpHeaders.LOCATION, "updateById")
-                .body(updateBYId);
-        return response;
+//Update data ById
+    @PutMapping("/updateById/{id}")
+    public ResponseEntity<UserDTO> updateById(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+        return ResponseEntity.ok(userService.updateById(id, userDTO));
     }
-    //Update Existing user by Name
-    @PutMapping("/userUpdateByName/{name}")
-    public ResponseEntity<UserEntity> updateByName(@PathVariable String name,@RequestBody UserEntity userEntity){
-        UserEntity updateBYName = userService.updateBYName(name, userEntity);
-        ResponseEntity<UserEntity> response = ResponseEntity.status(HttpStatus.OK)
-                .header("userName", "user123")
-                .body(updateBYName);
-        return response;
+//Get All Users
+    @GetMapping("/getUsers")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
     }
-    //Exception handler if exception occur
-   @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<String>noDataFound(NoSuchElementException exception)
-   {
-       return ResponseEntity.status(HttpStatus.NOT_FOUND)
-               .body(exception.getMessage());
-   }
-
-
+//Exception handler
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> noDataFound(NoSuchElementException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+    }
 }

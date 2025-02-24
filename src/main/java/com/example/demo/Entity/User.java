@@ -9,11 +9,14 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserEntity {
+@Table(name = "users")
+public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer userId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long userId;
+
     private String userName;
-    @Column(unique = true)
+
+    @Column(unique = true, nullable = false)
     private String userEmail;
 }

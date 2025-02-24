@@ -1,71 +1,75 @@
 package com.example.demo.Service;
 
-import com.example.demo.Entity.UserEntity;
+import com.example.demo.DTO.UserDTO;
+import com.example.demo.Entity.User;
+
 import com.example.demo.Repo.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
+
     @Autowired
-    //Create new user
     private UserRepo userRepo;
 
-    public UserEntity saveUser(UserEntity userEntity) {
-        return userRepo.save(userEntity);
+    public UserDTO saveUser(UserDTO userDTO) {
+
+        User userEntity = new User(null, userDTO.getUserName(), userDTO.getUserEmail());
+
+        User savedUser = userRepo.save(userEntity);
+
+        return new UserDTO(savedUser.getUserId(), savedUser.getUserName(), savedUser.getUserEmail());
     }
 
-    //GetExisting user
-    public Optional<UserEntity> getUser(int id) {
-        return userRepo.findById(id);
+
+    public Optional<UserDTO> getUser(Long id) {
+        return userRepo.findById(id).map(user -> new UserDTO(user.getUserId(), user.getUserName(), user.getUserEmail()));
     }
 
-    //GetExisting user By Name
-    public Optional<UserEntity> getUserByName(String name) {
-        return userRepo.getUserEntitiesByUserName(name);
+    public Optional<UserDTO> getUserByName(String name) {
+        return userRepo.findByUserName(name).map(user -> new UserDTO(user.getUserId(), user.getUserName(), user.getUserEmail()));
     }
 
-    //Delete User ById
-    public UserEntity deleteByID(int id) {
-     return userRepo.findById(id)
-             .map(user->{
-                 userRepo.deleteById(id);
-                 return user;
-             })
-             .orElseThrow(()->new NoSuchElementException("No data has been found"));
-}
-//Delete User ByName
+    // Delete user by ID
+    public void deleteByID(Long id) {
+        if (!userRepo.existsById(id)) {
+            throw new NoSuchElementException("No user found with ID: " + id);
+        }
+        userRepo.deleteById(id);
+    }
+
+    // Delete user by name
     @Transactional
-    public UserEntity deleteByName(String userName){
-       return userRepo.getUserEntitiesByUserName(userName)
-                .map(user->{
-                    userRepo.deleteByUserName(userName);
-                    return user;
-                })
-               .orElseThrow(()->new NoSuchElementException("No data has been found"));
+    public void deleteByName(String userName) {
+        Optional<User> user = userRepo.findByUserName(userName);
+        if (user.isEmpty()) {
+            throw new NoSuchElementException("No user found with name: " + userName);
+        }
+        userRepo.deleteByUserName(userName);
     }
-    //update Data byUsing Id
-    public UserEntity updateBYId(int Id,UserEntity userEntity){
-       return userRepo.findById(Id)
-               .map(user->{
-                   user.setUserName(userEntity.getUserName());
-                   user.setUserEmail(user.getUserEmail());
-                   return userRepo.save(user);
-        })
-                .orElseThrow(()->new NoSuchElementException("No User has been found"));
+
+    // Update user by ID
+    public UserDTO updateById(Long id, UserDTO userDTO) {
+        return userRepo.findById(id)
+                .map(user -> {
+                    user.setUserName(userDTO.getUserName());
+                    user.setUserEmail(userDTO.getUserEmail());
+                    userRepo.save(user);
+                    return new UserDTO(user.getUserId(), user.getUserName(), user.getUserEmail());
+                }).orElseThrow(() -> new NoSuchElementException("No user found with ID: " + id));
     }
-    //update User by userName
-    public UserEntity updateBYName(String name,UserEntity userEntity){
-        return getUserByName(name).map(user->{
-            user.setUserName(userEntity.getUserName());
-            user.setUserEmail(userEntity.getUserEmail());
-            return userRepo.save(user);
-        })
-                .orElseThrow(()->new NoSuchElementException("No User has been found"));
+
+    // Get all users
+    public List<UserDTO> getAllUsers() {
+        return userRepo.findAllUsers()
+                .stream()
+                .map(user -> new UserDTO(user.getUserId(), user.getUserName(), user.getUserEmail()))
+                .collect(Collectors.toList());
     }
 }
