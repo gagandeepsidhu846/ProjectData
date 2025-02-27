@@ -3,9 +3,11 @@ package com.example.demo.Service;
 import com.example.demo.DTO.UserDTO;
 import com.example.demo.Entity.User;
 
+import com.example.demo.Entity.UserRegistration;
 import com.example.demo.Repo.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -18,9 +20,9 @@ public class UserService {
     @Autowired
     private UserRepo userRepo;
 
-    public UserDTO saveUser(UserDTO userDTO) {
-
-        User userEntity = new User(null, userDTO.getUserName(), userDTO.getUserEmail());
+    public UserDTO saveUser(UserRegistration userRegistration) {
+String hashedPassword = new BCryptPasswordEncoder().encode(userRegistration.getUserPassword());
+        User userEntity = new User(null, userRegistration.getUserName(), userRegistration.getUserEmail(),hashedPassword);
 
         User savedUser = userRepo.save(userEntity);
 

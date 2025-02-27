@@ -1,6 +1,7 @@
 package com.example.demo.API;
 
 import com.example.demo.DTO.UserDTO;
+import com.example.demo.Entity.UserRegistration;
 import com.example.demo.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,12 +18,13 @@ public class UserController {
     @Autowired
     private UserService userService;
 //save the user
-    @PostMapping("/saveUser")
-    public ResponseEntity<UserDTO> saveUser(@RequestBody UserDTO userDTO) {
-        UserDTO savedUserDTO = userService.saveUser(userDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUserDTO);
-    }
-//Get the user byId
+@PostMapping("/saveUser")
+public ResponseEntity<UserDTO> saveUser(@RequestBody UserRegistration userRegistration) {
+    UserDTO savedUserDTO = userService.saveUser(userRegistration);  // Fix variable name & type
+    return ResponseEntity.status(HttpStatus.CREATED).body(savedUserDTO);
+}
+
+    //Get the user byId
     @GetMapping("/getUser/{id}")
     public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
         return userService.getUser(id)
